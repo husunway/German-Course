@@ -427,7 +427,11 @@
       fetch("/api/tree", { cache: "no-store" })
         .then(function (res) {
           return res.json().catch(function () { return {}; }).then(function (body) {
-            if (!res.ok) throw new Error(body.error || "Request failed (" + res.status + ")");
+            if (!res.ok) {
+              var e = new Error(body.error || "Request failed (" + res.status + ")");
+              e.tokenEnvVarsPresent = body.tokenEnvVarsPresent;
+              throw e;
+            }
             return body;
           });
         })
@@ -453,11 +457,19 @@
         })
         .catch(function (err) {
           summary.textContent = "Couldn't load the list.";
-          showState("error", "Couldn't read the German store", [
-            esc(err.message),
+          var lines = [esc(err.message)];
+          if (err.tokenEnvVarsPresent && err.tokenEnvVarsPresent.length) {
+            lines.push(
+              "Token-like env vars seen: <code>" +
+                err.tokenEnvVarsPresent.map(esc).join("</code>, <code>") +
+                "</code>"
+            );
+          }
+          lines.push(
             'Connect a Blob store named <code>German</code> to this project ' +
-              "(Project → Storage), then redeploy.",
-          ]);
+              "(Project → Storage), then redeploy."
+          );
+          showState("error", "Couldn't read the German store", lines);
         })
         .finally(function () {
           refreshBtn.removeAttribute("data-busy");
