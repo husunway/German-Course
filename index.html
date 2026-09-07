@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#1b2430" />
+<meta name="color-scheme" content="light" />
+<title>German — Course Hub</title>
+<meta name="description" content="Every German course file, served live from Blob storage." />
+<style>
+  :root {
+    --ink: #1b2430;
+    --ink-soft: rgba(246, 241, 228, 0.64);
+    --paper: #f6f1e4;
+    --panel: #faf7ef;
+    --text: #23262b;
+    --text-soft: rgba(35, 38, 43, 0.58);
+    --line: rgba(35, 38, 43, 0.12);
+    --line-soft: rgba(35, 38, 43, 0.07);
+    --accent: #b8863a;
+    --accent-strong: #8f6a28;
+    --danger: #9a3b2f;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    background: var(--ink);
+    color: var(--text);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overscroll-behavior-y: none;
+  }
+
+  a { color: inherit; }
+  ::selection { background: rgba(184, 134, 58, 0.28); }
+
+  .page {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---------- Header ---------- */
+
+  .hero {
+    background: var(--ink);
+    padding: clamp(38px, 8vh, 72px) 24px clamp(26px, 5vh, 38px);
+    padding-top: calc(clamp(38px, 8vh, 72px) + env(safe-area-inset-top));
+    padding-left: calc(24px + env(safe-area-inset-left));
+    padding-right: calc(24px + env(safe-area-inset-right));
+  }
+
+  .hero-inner { max-width: 760px; margin: 0 auto; }
+
+  .hero h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--paper);
+    font-size: clamp(2.1rem, 8vw, 3.1rem);
+    line-height: 1.04;
+    letter-spacing: -0.01em;
+  }
+
+  .hero p {
+    margin: 12px 0 0;
+    color: var(--ink-soft);
+    font-size: 0.96rem;
+    line-height: 1.5;
+    max-width: 48ch;
+  }
+
+  .hero-actions {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .accent-rule {
+    height: 3px;
+    width: 52px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  .refresh {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--ink-soft);
+    font: inherit;
+    font-size: 0.82rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 4px;
+    min-height: 44px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .refresh:hover, .refresh:focus-visible { color: var(--paper); }
+  .refresh:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+  .refresh svg { transition: transform 0.5s ease; }
+  .refresh[data-busy="true"] svg { animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---------- Panel ---------- */
+
+  .panel {
+    flex: 1;
+    background: var(--panel);
+    border-top: 1px solid rgba(0, 0, 0, 0.25);
+  }
+
+  .panel-inner {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 6px 24px 96px;
+    padding-left: calc(24px + env(safe-area-inset-left));
+    padding-right: calc(24px + env(safe-area-inset-right));
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+
+  /* ---------- States ---------- */
+
+  .state {
+    padding: 60px 4px;
+    text-align: center;
+    color: var(--text-soft);
+  }
+  .state h2 {
+    margin: 0 0 10px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: var(--text);
+  }
+  .state p { margin: 6px 0 0; font-size: 0.92rem; line-height: 1.5; }
+  .state.error h2 { color: var(--danger); }
+  .state .hint { margin-top: 14px; font-size: 0.85rem; }
+  .state code {
+    background: var(--line-soft);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.85em;
+  }
+  .spinner {
+    width: 22px;
+    height: 22px;
+    margin: 0 auto 16px;
+    border: 2px solid var(--line);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  /* ---------- Tree ---------- */
+
+  .tree { list-style: none; margin: 0; padding: 0; }
+  .tree.depth-0 > li { border-bottom: 1px solid var(--line); }
+  .tree.depth-0 > li:first-child > .folder > summary,
+  .tree.depth-0 > li:first-child > .file { padding-top: 20px; }
+
+  .tree.depth-0 > li > .folder > summary .folder-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+
+  .folder summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 0;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .folder summary::-webkit-details-marker { display: none; }
+  .folder summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  .caret {
+    flex: none;
+    color: var(--text-soft);
+    transition: transform 0.15s ease;
+  }
+  details[open] > summary .caret { transform: rotate(90deg); color: var(--accent); }
+
+  .folder-name {
+    flex: 1;
+    min-width: 0;
+    font-weight: 500;
+    color: var(--text);
+    overflow-wrap: anywhere;
+  }
+  .tree:not(.depth-0) .folder-name { font-size: 0.94rem; }
+
+  .item-count {
+    flex: none;
+    font-size: 0.76rem;
+    color: var(--text-soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .folder-children {
+    padding-left: 22px;
+    margin-left: 4px;
+    border-left: 1px solid var(--line-soft);
+    padding-bottom: 2px;
+  }
+
+  .file {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 44px;
+    padding: 10px 0;
+    text-decoration: none;
+    color: var(--text);
+  }
+  .file:hover, .file:focus-visible { color: var(--accent-strong); }
+  .file:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  .file-name { min-width: 0; overflow-wrap: anywhere; font-size: 0.94rem; }
+  .file-ext { flex: none; font-size: 0.74rem; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.03em; }
+
+  .empty-folder {
+    color: var(--text-soft);
+    font-size: 0.86rem;
+    padding: 2px 0 12px;
+    margin: 0;
+  }
+
+  .footer-note {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 24px 40px;
+    padding-left: calc(24px + env(safe-area-inset-left));
+    padding-right: calc(24px + env(safe-area-inset-right));
+    padding-bottom: calc(40px + env(safe-area-inset-bottom));
+    color: var(--text-soft);
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+  .footer-note code {
+    background: var(--line-soft);
+    padding: 2px 5px;
+    border-radius: 4px;
+  }
+
+  @media (max-width: 480px) {
+    .hero { padding-left: calc(20px + env(safe-area-inset-left)); padding-right: calc(20px + env(safe-area-inset-right)); }
+    .panel-inner { padding-left: calc(20px + env(safe-area-inset-left)); padding-right: calc(20px + env(safe-area-inset-right)); }
+    .footer-note { padding-left: calc(20px + env(safe-area-inset-left)); padding-right: calc(20px + env(safe-area-inset-right)); }
+    .folder-children { padding-left: 16px; margin-left: 2px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .caret, .refresh svg { transition: none; }
+    .spinner, .refresh[data-busy="true"] svg { animation: none; }
+  }
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="hero">
+    <div class="hero-inner">
+      <h1>German</h1>
+      <p id="summary">Loading course materials…</p>
+      <div class="hero-actions">
+        <div class="accent-rule" aria-hidden="true"></div>
+        <button type="button" class="refresh" id="refresh" aria-label="Refresh list">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 2v3.5H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Refresh</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <section class="panel">
+    <div class="panel-inner" id="content">
+      <div class="state" id="loading">
+        <div class="spinner" aria-hidden="true"></div>
+        Reading the German store…
+      </div>
+    </div>
+  </section>
+
+  <p class="footer-note">
+    Files are listed live from the <code>German</code> Vercel Blob store. Upload
+    HTML files there — use <code>/</code> in the file name for folders, e.g.
+    <code>Grammar/Week 1/dative.html</code> — and they show up here on the next visit.
+  </p>
+</main>
+
+<script>
+  (function () {
+    var content = document.getElementById("content");
+    var summary = document.getElementById("summary");
+    var refreshBtn = document.getElementById("refresh");
+
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+      });
+    }
+
+    function plural(n, word) {
+      return n + " " + word + (n === 1 ? "" : "s");
+    }
+
+    function countFiles(node) {
+      var n = node.files.length;
+      for (var i = 0; i < node.folders.length; i++) n += countFiles(node.folders[i]);
+      return n;
+    }
+
+    function fileRow(file) {
+      var a = document.createElement("a");
+      a.className = "file";
+      a.href = file.url;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+
+      var name = document.createElement("span");
+      name.className = "file-name";
+      name.textContent = file.name;
+
+      var ext = document.createElement("span");
+      ext.className = "file-ext";
+      var dot = file.name.lastIndexOf(".");
+      ext.textContent = dot > 0 ? file.name.slice(dot + 1) : "file";
+
+      a.appendChild(name);
+      a.appendChild(ext);
+      return a;
+    }
+
+    function folderRow(folder, depth) {
+      var details = document.createElement("details");
+      details.className = "folder";
+
+      var summaryEl = document.createElement("summary");
+      summaryEl.innerHTML =
+        '<svg class="caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">' +
+        '<path d="M2 0 L8 5 L2 10" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
+
+      var name = document.createElement("span");
+      name.className = "folder-name";
+      name.textContent = folder.name;
+
+      var count = document.createElement("span");
+      count.className = "item-count";
+      count.textContent = plural(countFiles(folder), "file");
+
+      summaryEl.appendChild(name);
+      summaryEl.appendChild(count);
+
+      var kids = document.createElement("div");
+      kids.className = "folder-children";
+      kids.appendChild(renderTree(folder, depth + 1));
+
+      details.appendChild(summaryEl);
+      details.appendChild(kids);
+      return details;
+    }
+
+    function renderTree(node, depth) {
+      if (node.folders.length === 0 && node.files.length === 0) {
+        var p = document.createElement("p");
+        p.className = "empty-folder";
+        p.textContent = "Nothing in here yet.";
+        return p;
+      }
+
+      var ul = document.createElement("ul");
+      ul.className = "tree depth-" + Math.min(depth, 3);
+
+      node.folders.forEach(function (folder) {
+        var li = document.createElement("li");
+        li.appendChild(folderRow(folder, depth));
+        ul.appendChild(li);
+      });
+      node.files.forEach(function (file) {
+        var li = document.createElement("li");
+        li.appendChild(fileRow(file));
+        ul.appendChild(li);
+      });
+      return ul;
+    }
+
+    function showState(kind, title, lines) {
+      content.innerHTML = "";
+      var div = document.createElement("div");
+      div.className = "state" + (kind === "error" ? " error" : "");
+      var html = "<h2>" + esc(title) + "</h2>";
+      (lines || []).forEach(function (line, i) {
+        html += '<p' + (i === lines.length - 1 && kind === "error" ? ' class="hint"' : "") + ">" + line + "</p>";
+      });
+      div.innerHTML = html;
+      content.appendChild(div);
+    }
+
+    function load() {
+      refreshBtn.setAttribute("data-busy", "true");
+      refreshBtn.disabled = true;
+
+      fetch("/api/tree", { cache: "no-store" })
+        .then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (body) {
+            if (!res.ok) throw new Error(body.error || "Request failed (" + res.status + ")");
+            return body;
+          });
+        })
+        .then(function (data) {
+          var tree = data.tree;
+          var count = data.count || 0;
+
+          if (count === 0) {
+            summary.textContent = "No files yet.";
+            showState("empty", "Nothing here yet", [
+              "The <code>German</code> Blob store is connected but empty.",
+              "Upload HTML files to it, then refresh.",
+            ]);
+            return;
+          }
+
+          var folders = tree.folders.length;
+          summary.textContent =
+            plural(folders, "folder") + " · " + plural(count, "file") + ". Tap to open.";
+
+          content.innerHTML = "";
+          content.appendChild(renderTree(tree, 0));
+        })
+        .catch(function (err) {
+          summary.textContent = "Couldn't load the list.";
+          showState("error", "Couldn't read the German store", [
+            esc(err.message),
+            'Connect a Blob store named <code>German</code> to this project ' +
+              "(Project → Storage), then redeploy.",
+          ]);
+        })
+        .finally(function () {
+          refreshBtn.removeAttribute("data-busy");
+          refreshBtn.disabled = false;
+        });
+    }
+
+    refreshBtn.addEventListener("click", load);
+    load();
+  })();
+</script>
+</body>
+</html>
