@@ -468,10 +468,11 @@
             );
           }
           lines.push(
-            'Connect a Blob store named <code>GermanBlob</code> to this project ' +
-              "(Project → Storage), then redeploy."
+            "Connect the Blob store to this project so " +
+              "<code>German_READ_WRITE_TOKEN</code> is set (Project → Storage), " +
+              "then redeploy."
           );
-          showState("error", "Couldn't read the GermanBlob store", lines);
+          showState("error", "Couldn't read the Blob store", lines);
         })
         .finally(function () {
           refreshBtn.removeAttribute("data-busy");

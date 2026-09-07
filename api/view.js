@@ -10,7 +10,8 @@
 
 import { list } from "@vercel/blob";
 
-const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
+const BLOB_TOKEN =
+  process.env.German_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
 
 const TYPE_BY_EXT = {
   html: "text/html; charset=utf-8",
@@ -31,7 +32,9 @@ const TYPE_BY_EXT = {
 export default async function handler(request, response) {
   try {
     if (!BLOB_TOKEN) {
-      response.status(500).send("BLOB_READ_WRITE_TOKEN is not set.");
+      response
+        .status(500)
+        .send("No blob token found (German_READ_WRITE_TOKEN / BLOB_READ_WRITE_TOKEN).");
       return;
     }
 

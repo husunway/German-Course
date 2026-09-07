@@ -1,6 +1,6 @@
 # German — Course Hub
 
-A single-page hub that lists **every file in the `GermanBlob` Vercel Blob store**,
+A single-page hub that lists **every file in the connected Vercel Blob store**,
 nested into folders, and links straight to each HTML file. The list is built
 live on every visit — upload a file to the store and it appears here, no
 redeploy needed.
@@ -34,19 +34,24 @@ No framework preset, build command, or output directory is needed —
 `vercel.json` sets `framework: null` and Vercel serves `index.html` at `/`
 and `api/tree.js` as a function.
 
-### 2. Create the Blob store named `GermanBlob`
+### 2. Connect the Blob store
 
-In the Vercel dashboard: **Project → Storage → Create Database → Blob**,
-name it **`GermanBlob`**, and connect it to this project. That injects the
-`BLOB_READ_WRITE_TOKEN` environment variable the function reads.
+In the Vercel dashboard: **Project → Storage** → create/select the Blob
+store and **connect it to this project**. This one is connected with the
+`German_` env-var prefix, so it injects:
+
+- `German_READ_WRITE_TOKEN` — the token the functions read
+- `German_STORE_ID`, `German_WEBHOOK_PUBLIC_KEY` — unused here
+
+`api/tree.js` / `api/view.js` read `German_READ_WRITE_TOKEN`, falling back
+to `BLOB_READ_WRITE_TOKEN` if that prefix ever changes.
 
 > After connecting the store, trigger one redeploy so the token is present
 > in the running deployment.
 
 ### 3. Add content
 
-Upload HTML files to the `GermanBlob` store — via the dashboard, the API, or the
-CLI:
+Upload HTML files to the store — via the dashboard, the API, or the CLI:
 
 ```bash
 vercel blob put ./local/dative.html --pathname "Grammar/Week 1/dative.html"
@@ -57,7 +62,7 @@ Refresh the site; the file is listed and opens in a new tab.
 ## Local development
 
 ```bash
-vercel env pull        # writes BLOB_READ_WRITE_TOKEN into .env
+vercel env pull        # writes German_READ_WRITE_TOKEN into .env
 vercel dev             # serves index.html + /api/tree at localhost:3000
 ```
 

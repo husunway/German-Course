@@ -4,31 +4,30 @@
 // Blob keys are flat strings; a key like "Grammar/Week 1/dative.html" is
 // treated as the file "dative.html" inside folder "Grammar" > "Week 1".
 //
-// Auth: the read/write token for the GermanBlob store is read from the
-// BLOB_READ_WRITE_TOKEN environment variable and passed explicitly to
-// list(). Vercel sets that variable when the GermanBlob store is connected
-// to this project (Project > Storage > Connect). If the store was connected
-// with a custom env-var prefix, set BLOB_READ_WRITE_TOKEN in
-// Project > Settings > Environment Variables to that store's token.
+// Auth: the read/write token is passed explicitly to list(). This store was
+// connected with the "German_" env-var prefix, so the token lives in
+// German_READ_WRITE_TOKEN; BLOB_READ_WRITE_TOKEN is accepted as a fallback.
+// Vercel sets these when the store is connected (Project > Storage > Connect).
 
 import { list } from "@vercel/blob";
 
-const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
+const BLOB_TOKEN =
+  process.env.German_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
 
 export default async function handler(request, response) {
   try {
     if (!BLOB_TOKEN) {
       // Surface which blob/token-ish vars *are* present so a misnamed
-      // connection (e.g. GERMAN_BLOB_READ_WRITE_TOKEN) is easy to spot.
+      // connection is easy to spot.
       const seen = Object.keys(process.env)
-        .filter((k) => /BLOB|TOKEN/i.test(k))
+        .filter((k) => /BLOB|TOKEN|STORE_ID/i.test(k))
         .sort();
       response.setHeader("Cache-Control", "no-store, max-age=0");
       response.status(500).json({
         error:
-          "BLOB_READ_WRITE_TOKEN is not set. Connect the GermanBlob store to " +
-          "this project (Project > Storage), or set BLOB_READ_WRITE_TOKEN in " +
-          "Settings > Environment Variables, then redeploy.",
+          "No blob token found. Expected German_READ_WRITE_TOKEN (or " +
+          "BLOB_READ_WRITE_TOKEN). Connect the store to this project " +
+          "(Project > Storage), then redeploy.",
         tokenEnvVarsPresent: seen,
       });
       return;
