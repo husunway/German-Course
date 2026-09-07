@@ -1,12 +1,12 @@
-// Serverless function: list everything in the "German" Vercel Blob store and
-// return it as a nested folder/file tree.
+// Serverless function: list everything in the "GermanBlob" Vercel Blob store
+// and return it as a nested folder/file tree.
 //
 // Blob keys are flat strings; a key like "Grammar/Week 1/dative.html" is
 // treated as the file "dative.html" inside folder "Grammar" > "Week 1".
 //
-// Auth: the read/write token for the German store is read from the
+// Auth: the read/write token for the GermanBlob store is read from the
 // BLOB_READ_WRITE_TOKEN environment variable and passed explicitly to
-// list(). Vercel sets that variable when the German Blob store is connected
+// list(). Vercel sets that variable when the GermanBlob store is connected
 // to this project (Project > Storage > Connect). If the store was connected
 // with a custom env-var prefix, set BLOB_READ_WRITE_TOKEN in
 // Project > Settings > Environment Variables to that store's token.
@@ -26,7 +26,7 @@ export default async function handler(request, response) {
       response.setHeader("Cache-Control", "no-store, max-age=0");
       response.status(500).json({
         error:
-          "BLOB_READ_WRITE_TOKEN is not set. Connect the German Blob store to " +
+          "BLOB_READ_WRITE_TOKEN is not set. Connect the GermanBlob store to " +
           "this project (Project > Storage), or set BLOB_READ_WRITE_TOKEN in " +
           "Settings > Environment Variables, then redeploy.",
         tokenEnvVarsPresent: seen,
@@ -98,7 +98,7 @@ export default async function handler(request, response) {
     response.status(500).json({
       error:
         error?.message ||
-        "Could not list the German Blob store. Is it connected to this project?",
+        "Could not list the GermanBlob store. Is it connected to this project?",
     });
   }
 }

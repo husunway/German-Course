@@ -300,13 +300,13 @@
     <div class="panel-inner" id="content">
       <div class="state" id="loading">
         <div class="spinner" aria-hidden="true"></div>
-        Reading the German store…
+        Reading the GermanBlob store…
       </div>
     </div>
   </section>
 
   <p class="footer-note">
-    Files are listed live from the <code>German</code> Vercel Blob store. Upload
+    Files are listed live from the <code>GermanBlob</code> Vercel Blob store. Upload
     HTML files there — use <code>/</code> in the file name for folders, e.g.
     <code>Grammar/Week 1/dative.html</code> — and they show up here on the next visit.
   </p>
@@ -444,7 +444,7 @@
           if (count === 0) {
             summary.textContent = "No files yet.";
             showState("empty", "Nothing here yet", [
-              "The <code>German</code> Blob store is connected but empty.",
+              "The <code>GermanBlob</code> Blob store is connected but empty.",
               "Upload HTML files to it, then refresh.",
             ]);
             return;
@@ -468,10 +468,10 @@
             );
           }
           lines.push(
-            'Connect a Blob store named <code>German</code> to this project ' +
+            'Connect a Blob store named <code>GermanBlob</code> to this project ' +
               "(Project → Storage), then redeploy."
           );
-          showState("error", "Couldn't read the German store", lines);
+          showState("error", "Couldn't read the GermanBlob store", lines);
         })
         .finally(function () {
           refreshBtn.removeAttribute("data-busy");
