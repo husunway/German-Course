@@ -337,7 +337,9 @@
     function fileRow(file) {
       var a = document.createElement("a");
       a.className = "file";
-      a.href = file.url;
+      // Serve HTML through our own proxy so it renders inline instead of
+      // downloading (Vercel Blob sends user HTML as an attachment).
+      a.href = "/api/view?path=" + encodeURIComponent(file.pathname);
       a.target = "_blank";
       a.rel = "noopener noreferrer";
 
